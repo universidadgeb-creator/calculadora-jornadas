@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Jornadas · Capital Humano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5f1; --card:#ffffff; --ink:#1d1f24; --muted:#6b6f78; --line:#e6e3dc;
+    --accent:#0f766e; --accent-soft:#e3f3f1;
+    --dia:#f59e0b; --dia-soft:#fef3c7;
+    --mix:#7c3aed; --mix-soft:#ede9fe;
+    --noc:#1e40af; --noc-soft:#dbeafe;
+    --ok:#15803d; --ok-soft:#dcfce7; --warn:#b91c1c; --warn-soft:#fee2e2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .wrap{max-width:1240px;margin:0 auto;padding:28px 20px 60px}
+  header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:30px;margin:4px 0 6px;font-weight:800;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0;max-width:640px;line-height:1.5}
+  .year{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);padding:5px;border-radius:999px}
+  .year button{border:0;background:transparent;font:inherit;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--muted)}
+  .year button.on{background:var(--ink);color:#fff}
+  .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  .lg{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;position:relative;overflow:hidden}
+  .lg::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+  .lg.d::before{background:var(--dia)} .lg.m::before{background:var(--mix)} .lg.n::before{background:var(--noc)}
+  .lg b{font-size:15px} .lg .r{color:var(--muted);font-size:12.5px;margin-top:4px;line-height:1.45}
+  .lg .cap{font-size:20px;font-weight:800;margin-top:6px}
+  .lg .cap small{font-size:12px;font-weight:600;color:var(--muted)}
+  .summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:0 0 18px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .kpi .v{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .kpi .l{color:var(--muted);font-size:12.5px}
+
+  .emp{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:16px;overflow:hidden}
+  .emp-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .emp-head .name{flex:1 1 240px}
+  .emp-head .name input{font-size:16px;font-weight:700;border:0;background:transparent;padding:4px 0;width:100%}
+  .emp-head .name input:focus{outline:none;border-bottom:2px solid var(--accent)}
+  .chk{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .mini{border:1px solid var(--line);background:#fbfaf8;font:inherit;font-size:12.5px;font-weight:600;padding:7px 11px;border-radius:10px;cursor:pointer;color:var(--ink)}
+  .mini:hover{background:var(--accent-soft)}
+  .del{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:20px;padding:2px 9px;border-radius:8px}
+  .del:hover{background:var(--warn-soft);color:var(--warn)}
+
+  .days{display:grid;grid-template-columns:repeat(7,minmax(140px,1fr));gap:0;overflow-x:auto}
+  .day{padding:12px;border-right:1px solid var(--line);min-width:140px}
+  .day:last-child{border-right:0}
+  .day.off{background:repeating-linear-gradient(135deg,#faf9f6,#faf9f6 8px,#f3f1ec 8px,#f3f1ec 16px)}
+  .day.off .fields{opacity:.35;pointer-events:none}
+  .dtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .dname{font-weight:800;font-size:13px;letter-spacing:.02em}
+  .dname.we{color:var(--accent)}
+  .toggle{font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:#fff;cursor:pointer;color:var(--muted)}
+  .toggle.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  label.f{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:6px 0 3px}
+  input,select{font:inherit;border:1px solid var(--line);border-radius:9px;padding:6px 7px;background:#fbfaf8;color:var(--ink);width:100%}
+  input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
+  .dout{margin-top:10px;min-height:46px}
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-weight:700;font-size:11.5px;white-space:nowrap}
+  .p-d{background:var(--dia-soft);color:#92400e}.p-m{background:var(--mix-soft);color:var(--mix)}.p-n{background:var(--noc-soft);color:var(--noc)}.p-x{background:#eee;color:var(--muted)}
+  .hrs{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px}
+  .tiny{font-size:11px;color:var(--muted)}
+  .ok{color:var(--ok)} .bad{color:var(--warn)}
+
+  .emp-foot{display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:12px 16px;border-top:1px solid var(--line);background:#fcfbf9}
+  .tot{font-size:13px;color:var(--muted)}
+  .tot b{font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums;margin-right:4px}
+  .flags{flex:1;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  .flag{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:8px}
+  .flag.bad{background:var(--warn-soft);color:var(--warn)} .flag.ok{background:var(--ok-soft);color:var(--ok)}
+  .weekbar{height:8px;width:180px;border-radius:99px;background:#eee;overflow:hidden;position:relative}
+  .weekbar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+
+  .suc{width:170px}
+  select.tpl{width:auto;font-size:12.5px;font-weight:600;padding:7px 9px}
+  .status{font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px;white-space:nowrap}
+  .status.ok{background:var(--ok-soft);color:var(--ok)} .status.bad{background:var(--warn-soft);color:var(--warn)}
+  .offer{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-top:1px dashed var(--line)}
+  .offer .txt{flex:1;white-space:pre-line;font-size:13px;line-height:1.55;background:var(--accent-soft);border-radius:12px;padding:10px 14px;color:#134e4a}
+  .offer .lbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:4px}
+  .mini.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 0}
+  .btn{border:1px solid var(--line);background:var(--card);font:inherit;font-weight:700;padding:10px 16px;border-radius:12px;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:hover{filter:brightness(.97)}
+  .notes{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;color:var(--muted);line-height:1.6;font-size:13px}
+  .notes b{color:var(--ink)} .notes ul{margin:6px 0 0;padding-left:18px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  @media (max-width:820px){.legend{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Capital Humano · Grupo GEB</div>
+      <h1>Calculadora de jornadas para vacantes</h1>
+      <p class="sub">Antes de publicar u ofertar un puesto, captura su horario de lunes a domingo. La calculadora clasifica la jornada, descuenta la comida, valida contra el tope legal y te da un resumen listo para la oferta.</p>
+    </div>
+    <div class="year" id="year">
+      <button data-y="2026">2026 · 48 h</button>
+      <button data-y="2027" class="on">2027 · 46 h</button>
+      <button data-y="2028">2028 · 44 h</button>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="lg d"><b>☀️ Diurna</b><div class="r">Todo el tiempo entre 6:00 y 20:00</div><div class="cap" id="capD"></div></div>
+    <div class="lg m"><b>🌗 Mixta</b><div class="r">Incluye horas diurnas y nocturnas, con menos de 3.5 h nocturnas</div><div class="cap" id="capM"></div></div>
+    <div class="lg n"><b>🌙 Nocturna</b><div class="r">Todo entre 20:00 y 6:00, o 3.5 h nocturnas o más</div><div class="cap" id="capN"></div></div>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div id="list"></div>
+
+  <div class="actions">
+    <button class="btn primary" id="add">+ Agregar vacante</button>
+    <button class="btn" id="copy">Copiar todo para Excel</button>
+    <button class="btn" id="reset">Limpiar</button>
+  </div>
+
+  <div class="notes">
+    <b>Cómo calcula</b>
+    <ul>
+      <li><b>Horas efectivas</b> = de entrada a salida, menos la comida. Si la persona <b>no puede salir</b> a comer, la comida sí cuenta como jornada (Art. 64 LFT). La comida se descuenta proporcionalmente entre horas diurnas y nocturnas.</li>
+      <li><b>Clasificación por día</b> (Art. 60 LFT): diurna 6:00–20:00, nocturna 20:00–6:00; mixta si tiene horas nocturnas, pero menos de 3.5.</li>
+      <li><b>Topes diarios</b> (Art. 61): 8 h diurna, 7.5 h mixta, 7 h nocturna. <b>Tope semanal</b>: el menor entre el tope del tipo de jornada (48 / 45 / 42) y el del año de la reforma (2026: 48 · 2027: 46 · 2028: 44).</li>
+      <li>Cuando los días son de tipos distintos, la <b>jornada de la semana</b> es el tipo con más días trabajados; si empatan, se toma el más estricto.</li>
+      <li>Alerta si no hay al menos un día de descanso o si la comida es menor de 30 min en turnos de más de 6 h (Art. 63). Los turnos que cruzan la medianoche se calculan solos.</li>
+      <li><b>Ojo:</b> la ley secundaria de la reforma aún puede ajustar los topes de jornada mixta y nocturna; validar con el abogado antes de cerrar cambios.</li>
+    </ul>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const YEAR_CAP = {2026:48, 2027:46, 2028:44};
+const TYPE = {
+  D:{name:"Diurna",  cls:"p-d", day:8,   week:48, rank:1},
+  M:{name:"Mixta",   cls:"p-m", day:7.5, week:45, rank:2},
+  N:{name:"Nocturna",cls:"p-n", day:7,   week:42, rank:3}
+};
+let year = 2027;
+const KEY = "geb-calc-jornadas-v4";
+const TKEY = "geb-calc-jornadas-plantillas";
+const day = (w,e,s,c)=>({w,e,s,c});
+const blank = ()=>({n:"", suc:"", out:true, days:DAYS.map((_,i)=>day(i<6,"09:00","17:00",30))});
+const defaults = [
+  {n:"Recepción · ejemplo", suc:"Easy Fit", out:true, days:[
+    day(true,"06:00","14:00",30),day(true,"06:00","14:00",30),day(true,"06:00","14:00",30),
+    day(true,"14:00","22:00",30),day(true,"14:00","22:00",30),day(true,"08:00","14:00",0),day(false,"","",0)]},
+  {n:"Limpieza nocturno · ejemplo", suc:"Vivo47", out:false, days:[
+    day(true,"22:00","05:00",30),day(true,"22:00","05:00",30),day(true,"22:00","05:00",30),
+    day(true,"22:00","05:00",30),day(true,"22:00","05:00",30),day(false,"","",0),day(true,"20:00","02:00",30)]}
+];
+let emps;
+try{ emps = JSON.parse(localStorage.getItem(KEY)) || JSON.parse(JSON.stringify(defaults)); }catch(e){ emps = JSON.parse(JSON.stringify(defaults)); }
+const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(emps)); }catch(e){} };
+const wk = (e,s,c,sat,sun)=>DAYS.map((_,i)=> i<5?day(true,e,s,c) : i===5?(sat?day(true,sat[0],sat[1],sat[2]):day(false,"","",0)) : (sun?day(true,sun[0],sun[1],sun[2]):day(false,"","",0)));
+const PRESETS = [
+  {name:"Oficina L–V 9 a 17 + sábado medio día", out:true, days:wk("09:00","17:00",60,["09:00","13:00",0])},
+  {name:"Matutino L–S 6 a 14", out:true, days:wk("06:00","14:00",30,["06:00","14:00",30])},
+  {name:"Vespertino L–S 14 a 22", out:true, days:wk("14:00","22:00",30,["14:00","22:00",30])},
+  {name:"Nocturno L–V 22 a 5", out:false, days:wk("22:00","05:00",30)},
+  {name:"Fin de semana (vie–dom)", out:true, days:DAYS.map((_,i)=> i>=4?day(true,"08:00","16:00",30):day(false,"","",0))}
+];
+let userTpl=[]; try{ userTpl = JSON.parse(localStorage.getItem(TKEY))||[]; }catch(e){}
+const saveTpl = ()=>{ try{ localStorage.setItem(TKEY, JSON.stringify(userTpl)); }catch(e){} };
+const allTpl = ()=>[...PRESETS, ...userTpl];
+const hh = t=>{ if(!t) return ""; const [h,m]=t.split(":"); return Number(h)+":"+m; };
+function offerText(emp, r){
+  const groups=[]; const sig=d=>d.w?d.e+"|"+d.s+"|"+d.c:"off";
+  emp.days.forEach((d,i)=>{ const g=groups[groups.length-1];
+    if(g && g.sig===sig(d) && g.to===i-1) g.to=i; else groups.push({sig:sig(d),from:i,to:i,d}); });
+  const rng=g=> g.from===g.to? DAYS[g.from] : (g.to-g.from===1? DAYS[g.from]+" y "+DAYS[g.to].toLowerCase() : DAYS[g.from]+" a "+DAYS[g.to].toLowerCase());
+  const lines=[]; const off=[];
+  groups.forEach(g=>{ if(!g.d.w){ off.push(rng(g).toLowerCase()); return; }
+    lines.push("• "+rng(g)+": "+hh(g.d.e)+" a "+hh(g.d.s)+(Number(g.d.c)>0?" ("+g.d.c+" min de comida)":"")); });
+  const head = (emp.n||"Puesto")+(emp.suc?" · "+emp.suc:"");
+  const t = r.wt? "Jornada "+TYPE[r.wt].name.toLowerCase()+" de "+(()=>{const [H,M]=fmt(r.week).split(":");return H+" h"+(M!=="00"?" "+Number(M)+" min":"");})()+" efectivas a la semana." : "";
+  return head+"\n"+lines.join("\n")+(off.length?"\n• Descanso: "+off.join(", "):"")+"\n"+t;
+}
+
+const toMin = t => { if(!t) return null; const [h,m] = t.split(":").map(Number); return h*60+m; };
+const isNight = m => { const h = Math.floor((m%1440)/60); return h<6 || h>=20; };
+const fmt = h => { const sign=h<0?"-":""; h=Math.abs(h); let H=Math.floor(h+1e-9), M=Math.round((h-H)*60); if(M===60){H++;M=0;} return sign+H+":"+String(M).padStart(2,"0"); };
+
+function calcDay(d, out){
+  if(!d.w) return null;
+  const e = toMin(d.e), s = toMin(d.s);
+  if(e===null || s===null) return {empty:true};
+  let span = s - e; if(span<=0) span += 1440;
+  const comida = Math.max(0, Math.min(Number(d.c)||0, span));
+  let dayMin=0, nightMin=0;
+  for(let i=0;i<span;i++) isNight(e+i) ? nightMin++ : dayMin++;
+  if(out && comida>0){
+    const mn = comida*nightMin/span;
+    nightMin -= mn; dayMin -= (comida-mn);
+  }
+  const dayH=dayMin/60, nightH=nightMin/60, total=dayH+nightH;
+  let t; if(nightH<=1e-9) t="D"; else if(dayH<=1e-9 || nightH>=3.5) t="N"; else t="M";
+  return {t, dayH, nightH, total, comida, span, over: total - TYPE[t].day, shortMeal: comida<30 && span>360};
+}
+
+function calcEmp(emp){
+  const ds = emp.days.map(d=>calcDay(d, emp.out));
+  const worked = ds.filter(x=>x && !x.empty);
+  const week = worked.reduce((a,x)=>a+x.total,0);
+  let wt = null;
+  if(worked.length){
+    const cnt = {D:0,M:0,N:0}; worked.forEach(x=>cnt[x.t]++);
+    wt = Object.keys(cnt).sort((a,b)=> cnt[b]-cnt[a] || TYPE[b].rank-TYPE[a].rank)[0];
+  }
+  const weekCap = wt ? Math.min(TYPE[wt].week, YEAR_CAP[year]) : YEAR_CAP[year];
+  const flags = [];
+  const overDays = ds.map((x,i)=>x&&!x.empty&&x.over>1e-9?DAYS[i].slice(0,3):null).filter(Boolean);
+  if(overDays.length) flags.push({bad:true,t:"Tope diario excedido: "+overDays.join(", ")});
+  if(week > weekCap+1e-9) flags.push({bad:true,t:"+"+fmt(week-weekCap)+" h sobre tope semanal"});
+  if(emp.days.filter(d=>d.w).length>=7) flags.push({bad:true,t:"Sin día de descanso"});
+  const sm = ds.map((x,i)=>x&&!x.empty&&x.shortMeal?DAYS[i].slice(0,3):null).filter(Boolean);
+  if(sm.length) flags.push({bad:true,t:"Descanso < 30 min: "+sm.join(", ")});
+  if(worked.length && !flags.length) flags.push({bad:false,t:"Dentro de tope · "+fmt(weekCap-week)+" h libres"});
+  return {ds, week, wt, weekCap, flags, worked:worked.length};
+}
+
+const list = document.getElementById("list");
+function render(){
+  document.querySelectorAll("#year button").forEach(b=>b.classList.toggle("on", Number(b.dataset.y)===year));
+  [["capD","D"],["capM","M"],["capN","N"]].forEach(([id,k])=>{
+    document.getElementById(id).innerHTML = TYPE[k].day+" h <small>/ día</small> · "+Math.min(TYPE[k].week,YEAR_CAP[year])+" h <small>/ semana</small>";
+  });
+  list.innerHTML = "";
+  emps.forEach((emp, ei)=>{
+    const card = document.createElement("div");
+    card.className = "emp";
+    card.innerHTML = `
+      <div class="emp-head">
+        <div class="name"><input data-f="n" value="${(emp.n||"").replace(/"/g,"&quot;")}" placeholder="Puesto / vacante"></div>
+        <input class="suc" data-f="suc" value="${(emp.suc||"").replace(/"/g,"&quot;")}" placeholder="Sucursal">
+        <select class="tpl" data-a="tpl"><option value="">Cargar plantilla…</option>${allTpl().map((t,i)=>`<option value="${i}">${t.name}</option>`).join("")}</select>
+        <label class="chk"><input type="checkbox" data-f="out" ${emp.out?"checked":""}> Sale a comer</label>
+        <button class="mini" data-a="copyMon">Copiar lunes a días laborados</button>
+        <button class="mini" data-a="saveTpl">Guardar como plantilla</button>
+        <button class="del" data-a="del" title="Eliminar">×</button>
+      </div>
+      <div class="days">${DAYS.map((dn,di)=>{const d=emp.days[di]; return `
+        <div class="day ${d.w?'':'off'}" data-di="${di}">
+          <div class="dtop"><span class="dname ${di>=5?'we':''}">${dn}</span>
+            <button class="toggle ${d.w?'':'on'}" data-a="tog">${d.w?'Trabaja':'Descansa'}</button></div>
+          <div class="fields">
+            <label class="f">Entrada</label><input type="time" data-k="e" value="${d.e||""}">
+            <label class="f">Salida</label><input type="time" data-k="s" value="${d.s||""}">
+            <label class="f">Comida (min)</label><input type="number" min="0" step="5" data-k="c" value="${d.c??0}">
+          </div>
+          <div class="dout"></div>
+        </div>`}).join("")}
+      </div>
+      <div class="emp-foot">
+        <div class="tot"><b class="wk"></b>h / semana</div>
+        <div><div class="tiny capt"></div><div class="weekbar"><i></i></div></div>
+        <div class="tiny wtype"></div>
+        <span class="status"></span>
+        <div class="flags"></div>
+      </div>
+      <div class="offer"><div style="flex:1"><div class="lbl">Resumen para vacante / oferta</div><div class="txt"></div></div>
+        <button class="mini primary" data-a="copyOffer">Copiar resumen</button></div>`;
+    card.querySelector('[data-f="n"]').addEventListener("input", e=>{ emp.n=e.target.value; save(); });
+    card.querySelector('[data-f="n"]').addEventListener("input", ()=>paint(card,emp));
+    card.querySelector('[data-f="suc"]').addEventListener("input", e=>{ emp.suc=e.target.value; save(); paint(card,emp); });
+    card.querySelector('[data-a="tpl"]').onchange = e=>{
+      const t = allTpl()[Number(e.target.value)]; if(!t) return;
+      emp.out = t.out; emp.days = JSON.parse(JSON.stringify(t.days)); save(); render(); toast("Plantilla cargada: "+t.name);
+    };
+    card.querySelector('[data-a="saveTpl"]').onclick = ()=>{
+      const name = (emp.n||"Plantilla")+(emp.suc?" · "+emp.suc:"");
+      userTpl = userTpl.filter(t=>t.name!==name);
+      userTpl.push({name, out:emp.out, days:JSON.parse(JSON.stringify(emp.days))}); saveTpl(); render(); toast("Guardada como plantilla");
+    };
+    card.querySelector('[data-a="copyOffer"]').onclick = async ()=>{
+      try{ await navigator.clipboard.writeText(offerText(emp, calcEmp(emp))); toast("Resumen copiado"); }catch(e){ toast("No se pudo copiar en este navegador"); }
+    };
+    card.querySelector('[data-f="out"]').addEventListener("change", e=>{ emp.out=e.target.checked; save(); paint(card,emp); summary(); });
+    card.querySelector('[data-a="del"]').onclick = ()=>{ emps.splice(ei,1); save(); render(); };
+    card.querySelector('[data-a="copyMon"]').onclick = ()=>{
+      const m = emp.days[0];
+      emp.days.forEach((d,i)=>{ if(i>0 && d.w){ d.e=m.e; d.s=m.s; d.c=m.c; } });
+      save(); render(); toast("Horario del lunes copiado");
+    };
+    card.querySelectorAll(".day").forEach(dEl=>{
+      const di = Number(dEl.dataset.di), d = emp.days[di];
+      dEl.querySelector('[data-a="tog"]').onclick = ()=>{
+        d.w = !d.w; if(d.w && !d.e){ d.e="09:00"; d.s="17:00"; d.c=30; }
+        save(); render();
+      };
+      dEl.querySelectorAll("[data-k]").forEach(inp=>inp.addEventListener("input", ()=>{
+        d[inp.dataset.k] = inp.value; save(); paint(card,emp); summary();
+      }));
+    });
+    list.appendChild(card);
+    paint(card, emp);
+  });
+  summary();
+}
+
+function paint(card, emp){
+  const r = calcEmp(emp);
+  card.querySelectorAll(".day").forEach((dEl,i)=>{
+    const x = r.ds[i], o = dEl.querySelector(".dout");
+    if(!x){ o.innerHTML = '<span class="pill p-x">Descanso</span>'; return; }
+    if(x.empty){ o.innerHTML = '<span class="tiny">Captura horario</span>'; return; }
+    const T = TYPE[x.t];
+    o.innerHTML = `<span class="pill ${T.cls}">${T.name}</span>
+      <div class="hrs ${x.over>1e-9?'bad':''}">${fmt(x.total)} h</div>
+      <div class="tiny">${fmt(x.dayH)} diur · ${fmt(x.nightH)} noct${emp.out?'':' · comida cuenta'}</div>`;
+  });
+  card.querySelector(".wk").textContent = fmt(r.week);
+  card.querySelector(".wk").className = "wk " + (r.week>r.weekCap+1e-9?"bad":"");
+  card.querySelector(".capt").textContent = "Tope "+r.weekCap+" h";
+  const bar = card.querySelector(".weekbar i");
+  bar.style.width = Math.min(100, r.week/r.weekCap*100)+"%";
+  bar.style.background = r.week>r.weekCap+1e-9 ? "var(--warn)" : "var(--accent)";
+  card.querySelector(".wtype").innerHTML = r.wt ? `Jornada semanal: <span class="pill ${TYPE[r.wt].cls}">${TYPE[r.wt].name}</span> · ${r.worked} días` : "";
+  const bad = r.flags.some(f=>f.bad);
+  const st = card.querySelector(".status");
+  st.className = "status "+(bad?"bad":"ok"); st.textContent = !r.wt ? "" : bad ? "⚠ Ajustar antes de ofertar" : "✓ Listo para ofertar";
+  if(!r.wt) st.className="";
+  card.querySelector(".offer .txt").textContent = offerText(emp, r);
+  card.querySelector(".flags").innerHTML = r.flags.map(f=>`<span class="flag ${f.bad?'bad':'ok'}">${f.t}</span>`).join("");
+}
+
+function summary(){
+  const rs = emps.map(calcEmp).filter(r=>r.wt);
+  const cnt = k=>rs.filter(r=>r.wt===k).length;
+  const al = rs.filter(r=>r.flags.some(f=>f.bad)).length;
+  const avg = rs.length ? rs.reduce((a,r)=>a+r.week,0)/rs.length : 0;
+  document.getElementById("summary").innerHTML = `
+    <div class="kpi"><div class="v">${rs.length}</div><div class="l">Vacantes · prom. ${fmt(avg)} h/sem</div></div>
+    <div class="kpi"><div class="v" style="color:#b45309">${cnt("D")}</div><div class="l">Jornada diurna</div></div>
+    <div class="kpi"><div class="v" style="color:var(--mix)">${cnt("M")}</div><div class="l">Jornada mixta</div></div>
+    <div class="kpi"><div class="v" style="color:var(--noc)">${cnt("N")}</div><div class="l">Jornada nocturna</div></div>
+    <div class="kpi"><div class="v ${al?'bad':'ok'}">${al}</div><div class="l">Por ajustar antes de ofertar</div></div>`;
+}
+
+document.getElementById("add").onclick = ()=>{ emps.push(blank()); save(); render(); };
+document.getElementById("reset").onclick = ()=>{ emps=[blank()]; save(); render(); };
+document.querySelectorAll("#year button").forEach(b=>b.onclick=()=>{ year=Number(b.dataset.y); render(); });
+document.getElementById("copy").onclick = async ()=>{
+  const head = ["Puesto/vacante","Sucursal","Sale a comer"];
+  DAYS.forEach(d=>head.push(d+" horario", d+" tipo", d+" horas"));
+  head.push("Días trabajados","Total semana","Jornada semanal","Tope "+year,"Estatus","Alertas");
+  const lines=[head.join("\t")];
+  emps.forEach(emp=>{
+    const r = calcEmp(emp); const row=[emp.n||"", emp.suc||"", emp.out?"Sí":"No"];
+    emp.days.forEach((d,i)=>{ const x=r.ds[i];
+      if(!x) row.push("Descanso","","0");
+      else if(x.empty) row.push("","","");
+      else row.push(d.e+"-"+d.s+" ("+d.c+" min)", TYPE[x.t].name, x.total.toFixed(2));
+    });
+    row.push(r.worked, r.week.toFixed(2), r.wt?TYPE[r.wt].name:"", r.weekCap, r.flags.some(f=>f.bad)?"Ajustar":"Listo para ofertar", r.flags.map(f=>f.t).join(" | "));
+    lines.push(row.join("\t"));
+  });
+  try{ await navigator.clipboard.writeText(lines.join("\n")); toast("Copiado · pégalo en Excel"); }
+  catch(e){ toast("No se pudo copiar en este navegador"); }
+};
+function toast(t){ const el=document.getElementById("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2200); }
+render();
+</script>
+</body>
+</html>
+
